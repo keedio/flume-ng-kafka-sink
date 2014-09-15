@@ -51,6 +51,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
 	private String topic;
 	private Producer<byte[], byte[]> producer;
+	private KafkaSinkCounter counter;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
@@ -64,6 +65,8 @@ public class KafkaSink extends AbstractSink implements Configurable {
 
 			}
 			producer.send(new KeyedMessage<byte[], byte[]>(this.topic, event.getBody()));
+			counter.increaseCounterMessageSent();
+			
 			log.trace("Message: {}", event.getBody());
 			tx.commit();
 			return Status.READY;
@@ -86,17 +89,21 @@ public class KafkaSink extends AbstractSink implements Configurable {
 		if (topic == null) {
 			throw new ConfigurationException("Kafka topic must be specified.");
 		}
+				
 		producer = KafkaSinkUtil.getProducer(context);
+		counter = new KafkaSinkCounter("SINK.Kafka-"+context.getString("topic"));
 	}
 
 	@Override
 	public synchronized void start() {
 		super.start();
+		counter.start();
 	}
 
 	@Override
 	public synchronized void stop() {
 		producer.close();
+		counter.stop();
 		super.stop();
 	}
 }

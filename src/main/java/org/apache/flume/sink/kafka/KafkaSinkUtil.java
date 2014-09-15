@@ -37,7 +37,7 @@ public class KafkaSinkUtil {
 		Properties props = new Properties();
 		Map<String, String> contextMap = context.getParameters();
 		for(String key : contextMap.keySet()) {
-			if (!key.equals("type") && !key.equals("channel")) {
+			if (!key.equals("type") && !key.equals("channel") && !key.equals("topic")) {
 				props.setProperty(key, context.getString(key));
 				log.info("key={},value={}",key,context.getString(key));
 			}
