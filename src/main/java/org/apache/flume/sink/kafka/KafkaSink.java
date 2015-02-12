@@ -62,22 +62,29 @@ public class KafkaSink extends AbstractSink implements Configurable {
 			if (event == null) {
 				tx.commit();
 				return Status.READY;
-
 			}
-			producer.send(new KeyedMessage<byte[], byte[]>(this.topic, event.getBody()));
-			counter.increaseCounterMessageSent();
-			
-			log.trace("Message: {}", event.getBody());
-			tx.commit();
-			return Status.READY;
-		} catch (Exception e) {
-			try {
+
+            try {
+                producer.send(new KeyedMessage<byte[], byte[]>(this.topic, event.getBody()));
+                counter.increaseCounterMessageSent();
+            } catch (Exception e) {
+                counter.increaseCounterMessageSentError();
+
+                throw e;
+            }
+
+            log.trace("Message: {}", event.getBody());
+            tx.commit();
+            return Status.READY;
+
+        } catch (Exception e) {
+            log.error("KafkaSink Exception:{}", e);
+
+            try {
 				tx.rollback();
-				return Status.BACKOFF;
 			} catch (Exception e2) {
 				log.error("Rollback Exception:{}", e2);
-			}		
-			log.error("KafkaSink Exception:{}", e);
+			}
 			return Status.BACKOFF;
 		} finally {
 			tx.close();
