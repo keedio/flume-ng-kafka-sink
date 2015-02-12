@@ -35,14 +35,18 @@ import org.apache.flume.sink.AbstractSink;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.runners.MockitoJUnitRunner;
 
 public class KafkaSinkTest {
 
-	private KafkaSink mockKafkaSink;
+	private KafkaSink kafkaSink;
 	private Producer<byte[], byte[]> mockProducer;
 	private Channel mockChannel;
 	private Event mockEvent;
 	private Transaction mockTx;
+    private KafkaSinkCounter kafkaSinkCounter;
 
 	@SuppressWarnings("unchecked")
 	@Before
@@ -51,23 +55,29 @@ public class KafkaSinkTest {
 		mockChannel = mock(Channel.class);
 		mockEvent = mock(Event.class);
 		mockTx = mock(Transaction.class);
-		mockKafkaSink = new KafkaSink();
+		kafkaSink = new KafkaSink();
+        kafkaSinkCounter = new KafkaSinkCounter("testSinkCounter");
 		
 		Field field = AbstractSink.class.getDeclaredField("channel");
 		field.setAccessible(true);
-		field.set(mockKafkaSink, mockChannel);
+		field.set(kafkaSink, mockChannel);
 
 		field = KafkaSink.class.getDeclaredField("topic");
 		field.setAccessible(true);
-		field.set(mockKafkaSink, "test");
+		field.set(kafkaSink, "test");
 
 		field = KafkaSink.class.getDeclaredField("producer");
 		field.setAccessible(true);
-		field.set(mockKafkaSink, mockProducer);
+		field.set(kafkaSink, mockProducer);
+
+        field = KafkaSink.class.getDeclaredField("counter");
+        field.setAccessible(true);
+        field.set(kafkaSink, kafkaSinkCounter);
 		
 		when(mockChannel.take()).thenReturn(mockEvent);
 		when(mockChannel.getTransaction()).thenReturn(mockTx);
-	}
+        doNothing().when(mockProducer).send(Matchers.<KeyedMessage<byte[], byte[]>>any());
+    }
 
 	@After
 	public void tearDown() throws Exception {
@@ -77,13 +87,16 @@ public class KafkaSinkTest {
 	@Test
 	public void testProcessStatusReady() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		when(mockEvent.getBody()).thenReturn("frank".getBytes());
-		Status status = mockKafkaSink.process();
+
+        Status status = kafkaSink.process();
 		verify(mockChannel, times(1)).getTransaction();
 		verify(mockChannel, times(1)).take();
 		verify(mockProducer, times(1)).send((KeyedMessage<byte[], byte[]>) any());
 		verify(mockTx, times(1)).commit();
 		verify(mockTx, times(0)).rollback();
 		verify(mockTx, times(1)).close();
+        assertEquals(0, kafkaSinkCounter.getCounterMessageSentError());
+        assertEquals(1, kafkaSinkCounter.getCounterMessageSent());
 		assertEquals(Status.READY, status);
 	}
 
@@ -91,13 +104,50 @@ public class KafkaSinkTest {
 	@Test
 	public void testProcessStatusBackoff() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		when(mockEvent.getBody()).thenThrow(new RuntimeException());
-		Status status = mockKafkaSink.process();
+		Status status = kafkaSink.process();
 		verify(mockChannel, times(1)).getTransaction();
 		verify(mockChannel, times(1)).take();
 		verify(mockProducer, times(0)).send((KeyedMessage<byte[], byte[]>) any());
 		verify(mockTx, times(0)).commit();
 		verify(mockTx, times(1)).rollback();
 		verify(mockTx, times(1)).close();
+        assertEquals(1, kafkaSinkCounter.getCounterMessageSentError());
+        assertEquals(0, kafkaSinkCounter.getCounterMessageSent());
 		assertEquals(Status.BACKOFF, status);
 	}
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testFailChannelTake() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        when(mockEvent.getBody()).thenReturn("frank".getBytes());
+        doThrow(new RuntimeException()).when(mockChannel).take();
+
+        Status status = kafkaSink.process();
+        verify(mockChannel, times(1)).getTransaction();
+        verify(mockChannel, times(1)).take();
+        verify(mockProducer, times(0)).send((KeyedMessage<byte[], byte[]>) any());
+        verify(mockTx, times(0)).commit();
+        verify(mockTx, times(1)).rollback();
+        verify(mockTx, times(1)).close();
+        assertEquals(0, kafkaSinkCounter.getCounterMessageSentError());
+        assertEquals(0, kafkaSinkCounter.getCounterMessageSent());
+        assertEquals(Status.BACKOFF, status);
+    }
+
+    @Test
+    public void testKafkaSendFailure() throws EventDeliveryException, SecurityException, NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+        //when(mockProducer.send((KeyedMessage<byte[], byte[]>) any())).thenThrow(new RuntimeException());
+        doThrow(new RuntimeException()).when(mockProducer).send(Matchers.<KeyedMessage<byte[], byte[]>>any());
+
+        Status status = kafkaSink.process();
+        verify(mockChannel, times(1)).getTransaction();
+        verify(mockChannel, times(1)).take();
+        verify(mockProducer, times(1)).send(Matchers.<KeyedMessage<byte[], byte[]>>any());
+        verify(mockTx, times(0)).commit();
+        verify(mockTx, times(1)).rollback();
+        verify(mockTx, times(1)).close();
+        assertEquals(1, kafkaSinkCounter.getCounterMessageSentError());
+        assertEquals(0, kafkaSinkCounter.getCounterMessageSent());
+        assertEquals(Status.BACKOFF, status);
+    }
 }

@@ -47,7 +47,7 @@ public class KafkaSinkUtilTest {
 	@Test
 	public void testGetKafkaConfigParameter() {
 		assertEquals("10",props.getProperty("consumer.timeout"));
-		assertEquals("test",props.getProperty("topic"));
+		assertNull(props.getProperty("topic"));
 		assertNull(props.getProperty("type"));
 	}
 
