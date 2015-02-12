@@ -12,4 +12,5 @@ bin/
 target/
 .classpath
 .settings/**
-
+.idea/
+*.iml
