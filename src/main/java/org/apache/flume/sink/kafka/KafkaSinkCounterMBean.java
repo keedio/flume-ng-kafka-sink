@@ -1,14 +1,17 @@
 package org.apache.flume.sink.kafka;
 
 public interface KafkaSinkCounterMBean {
-	public long increaseCounterMessageSent();
 
-    public long getCounterMessageSent();
-	public long getLastSent();
-	public long increaseCounterMessageSentError();
+	public void increaseCounterMessageSent();
+
+	public void increaseCounterMessageSentError();
+
+	public long getCounterMessageSent();
+
 	public long getCounterMessageSentError();
-	public long setStartTime();
-	public long getStartTime();
-    public long getSendThroughput();
+
+	public long getCurrentThroughput();
+
+	public long getAverageThroughput();
 
 }

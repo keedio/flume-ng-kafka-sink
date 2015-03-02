@@ -1,66 +1,84 @@
 package org.apache.flume.sink.kafka;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.flume.instrumentation.MonitoredCounterGroup;
 
 public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSinkCounterMBean {
+	
+	private long startTime;
 
-    private static long counter_message_sent;
-    private static long counter_message_sent_error;
-    private static long last_sent;
-    private static long start_time;
-    private static long sendThroughput;
+	private static final String COUNTER_MESSAGE_SENT = "sink.counter.message.sent";
+	private static final String COUNTER_MESSAGE_SENT_ERROR = "sink.counter.message.sent.error";
+	private static final String AVERAGE_THROUGHPUT = "sink.average.throughput";
+	private static final String CURRENT_THROUGHPUT = "sink.current.throughput";
 
-    private static final String[] ATTRIBUTES = {
-            "counter_message_sent", "counter_message_sent_error", "last_sent", "start_time"
-    };
+	private final ScheduledExecutorService scheduler = Executors
+			.newScheduledThreadPool(1);
 
-    public KafkaSinkCounter(String name) {
-        super(MonitoredCounterGroup.Type.SINK, name, ATTRIBUTES);
-        counter_message_sent = 0;
-        counter_message_sent_error = 0;
-        last_sent = 0;
-        sendThroughput = 0;
-        setStartTime();
-    }
+	public static final String[] ATTRIBUTES = { COUNTER_MESSAGE_SENT,
+			COUNTER_MESSAGE_SENT_ERROR, CURRENT_THROUGHPUT, AVERAGE_THROUGHPUT };
 
-    public long increaseCounterMessageSent() {
-        last_sent = System.currentTimeMillis();
-        counter_message_sent++;
+	public KafkaSinkCounter(String name) {
+		super(MonitoredCounterGroup.Type.SINK, name, ATTRIBUTES);
+		startTime = System.currentTimeMillis() / 1000;
 
-        if (last_sent > start_time) {
-            sendThroughput = counter_message_sent / ((last_sent - start_time) / 1000);
-        }
-        return counter_message_sent;
-    }
+		// Start running current throughput calculate every second
+		final Runnable runnableThroughput = new ThroughputCalculate();
+		scheduler.scheduleAtFixedRate(runnableThroughput, 0, 1,
+				TimeUnit.SECONDS);
+	}
 
-    public long getCounterMessageSent() {
-        return counter_message_sent;
-    }
+	public void increaseCounterMessageSent() {
+		increment(COUNTER_MESSAGE_SENT);
+	}
 
-    public long getLastSent() {
-        return last_sent;
-    }
+	public long getCounterMessageSent() {
+		return get(COUNTER_MESSAGE_SENT);
+	}
 
-    public long setStartTime() {
-        start_time = System.currentTimeMillis();
-        return start_time;
-    }
+	public void increaseCounterMessageSentError() {
+		increment(COUNTER_MESSAGE_SENT_ERROR);
+	}
 
-    public long getStartTime() {
-        return start_time;
-    }
+	public long getCounterMessageSentError() {
+		return get(COUNTER_MESSAGE_SENT_ERROR);
+	}
 
-    public long increaseCounterMessageSentError() {
-        return counter_message_sent_error++;
-    }
+	public long getAverageThroughput() {
+		return get(AVERAGE_THROUGHPUT);
+	}
 
-    public long getCounterMessageSentError() {
-        return counter_message_sent_error;
-    }
+	public long getCurrentThroughput() {
+		return get(CURRENT_THROUGHPUT);
+	}
 
-    @Override
-    public long getSendThroughput() {
-        return sendThroughput;
-    }
+	private class ThroughputCalculate implements Runnable {
 
+		private long previousMessages = 0;
+		private long currentMessages = 0;
+		private long currentThroughput = 0;
+		private long currentTime = 0;
+		private long averageThroughput = 0;
+
+		@Override
+		public void run() {
+			currentMessages = get(COUNTER_MESSAGE_SENT);
+			if (currentMessages >= previousMessages) {
+				currentThroughput = currentMessages - previousMessages;
+
+				set(CURRENT_THROUGHPUT, currentThroughput);
+				currentTime = System.currentTimeMillis() / 1000;
+
+				if (currentTime > startTime) {
+					averageThroughput = currentMessages
+							/ ((currentTime - startTime));
+				}
+				set(AVERAGE_THROUGHPUT, averageThroughput);
+				previousMessages = currentMessages;
+			}
+		}
+	}
 }
