@@ -36,7 +36,8 @@ public class KafkaSinkUtilTest {
 		Context context = new Context();
 		context.put("consumer.timeout", "10");
 		context.put("type", "KafkaSource");
-		context.put("topic", "test");
+		context.put("defaultTopic", "defaultTopic");
+		context.put("dynamicTopic", "$KEY$");
 		props = KafkaSinkUtil.getKafkaConfigProperties(context);
 	}
 
@@ -47,8 +48,9 @@ public class KafkaSinkUtilTest {
 	@Test
 	public void testGetKafkaConfigParameter() {
 		assertEquals("10",props.getProperty("consumer.timeout"));
-		assertNull(props.getProperty("topic"));
+		assertNull(props.getProperty("defaultTopic"));
 		assertNull(props.getProperty("type"));
+		assertNull(props.getProperty("dynamicTopic"));
 	}
 
 	@Test

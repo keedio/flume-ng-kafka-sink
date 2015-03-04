@@ -62,9 +62,9 @@ public class KafkaSinkTest {
 		field.setAccessible(true);
 		field.set(kafkaSink, mockChannel);
 
-		field = KafkaSink.class.getDeclaredField("topic");
+		field = KafkaSink.class.getDeclaredField("defaultTopic");
 		field.setAccessible(true);
-		field.set(kafkaSink, "test");
+		field.set(kafkaSink, "defaultTopic");
 
 		field = KafkaSink.class.getDeclaredField("producer");
 		field.setAccessible(true);

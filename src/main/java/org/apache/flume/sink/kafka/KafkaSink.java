@@ -49,13 +49,14 @@ import org.slf4j.LoggerFactory;
  */
 public class KafkaSink extends AbstractSink implements Configurable {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
-	private String topic;
+	private String defaultTopic, dynamicTopic;
 	private Producer<byte[], byte[]> producer;
 	private KafkaSinkCounter counter;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
 		Transaction tx = channel.getTransaction();
+		String destinationTopic = null;
 		try {
 			tx.begin();
 			Event event = channel.take();
@@ -63,13 +64,18 @@ public class KafkaSink extends AbstractSink implements Configurable {
 				tx.commit();
 				return Status.READY;
 			}
-
             try {
-                producer.send(new KeyedMessage<byte[], byte[]>(this.topic, event.getBody()));
+            	if (dynamicTopic != null){
+            		destinationTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, event.getBody());
+            	}
+            	if (destinationTopic == null){
+            		destinationTopic = defaultTopic;
+            	}
+            	log.debug("Sending message to topic: " + destinationTopic);
+            	producer.send(new KeyedMessage<byte[], byte[]>(destinationTopic, event.getBody()));
                 counter.increaseCounterMessageSent();
             } catch (Exception e) {
                 counter.increaseCounterMessageSentError();
-
                 throw e;
             }
 
@@ -92,13 +98,14 @@ public class KafkaSink extends AbstractSink implements Configurable {
 	}
 
 	public void configure(Context context) {
-		topic = context.getString("topic");
-		if (topic == null) {
-			throw new ConfigurationException("Kafka topic must be specified.");
+		defaultTopic = context.getString("defaultTopic");
+		if (defaultTopic == null) {
+			throw new ConfigurationException("Kafka default topic must be specified.");
 		}
+		dynamicTopic = context.getString("dynamicTopic");
 				
 		producer = KafkaSinkUtil.getProducer(context);
-		counter = new KafkaSinkCounter("SINK.Kafka-"+context.getString("topic"));
+		counter = new KafkaSinkCounter("SINK.Kafka-"+ getName());
 	}
 
 	@Override
