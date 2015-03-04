@@ -71,28 +71,34 @@ public class KafkaSinkUtil {
 		// TODO: Change this harcoded source with Emmanuelle getExtraData() method
 		Map<String,String> extraData = new HashMap<String,String>();
 		
-		extraData.put("CLIENT", "Client-" + fakeMessageID);
-		extraData.put("VDC_NAME", "VdcName-" + fakeMessageID);
-		extraData.put("PRODUC_TYPE", "ProductType-" + fakeMessageID);
+		extraData.put("CLIENT", "Client" + fakeMessageID);
+		extraData.put("VDC_NAME", "VdcName" + fakeMessageID);
+		extraData.put("PRODUCT_TYPE", "ProductType" + fakeMessageID);
 		
-		fakeMessageID = (fakeMessageID + 1) % 2;
+		fakeMessageID = (fakeMessageID + 1) % 3;
 		// END harcoded source
 		
 		// GET DYNAMIC TOPIC
-		String[] keys = dynamicTopic.split("_");
+		String[] keys = dynamicTopic.split("-");
+		
+		for (int j=0;j<keys.length;j++)
+		log.debug("KEY "+ j+ " : " + keys[j]);
 		
 		int i=0;
-		while (extraData.containsKey(keys) && i<keys.length){
+		while ( i<keys.length && extraData.containsKey(keys[i])){
 			i++;
 		}
 		
+		log.debug("KEYS.LENGTH: " + keys.length + " I ---->  " + i);
+		
 		// if all keys are found in extraData, the destination topic is build
-		String destinationTopic=new String();
+		String destinationTopic=null;
 		if (i==keys.length){
+			destinationTopic = new String();
 			for (i=0;i<keys.length;i++){
-				destinationTopic.concat(extraData.get(keys[i]));
+				destinationTopic += extraData.get(keys[i]);
 				if (i!=keys.length-1)
-					destinationTopic.concat("_");
+					destinationTopic += "-";
 			}
 		}
 			
