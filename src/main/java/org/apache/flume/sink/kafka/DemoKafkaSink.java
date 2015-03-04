@@ -48,8 +48,8 @@ import org.slf4j.LoggerFactory;
  * 
  * }
  */
-public class KafkaSink extends AbstractSink implements Configurable {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
+public class DemoKafkaSink extends AbstractSink implements Configurable {
+	private static final Logger log = LoggerFactory.getLogger(DemoKafkaSink.class);
 	private String defaultTopic, dynamicTopic, zkConnect;
 	private Producer<byte[], byte[]> producer;
 	private KafkaSinkCounter counter;

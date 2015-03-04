@@ -41,7 +41,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 public class KafkaSinkTest {
 
-	private KafkaSink kafkaSink;
+	private DemoKafkaSink kafkaSink;
 	private Producer<byte[], byte[]> mockProducer;
 	private Channel mockChannel;
 	private Event mockEvent;
@@ -55,22 +55,22 @@ public class KafkaSinkTest {
 		mockChannel = mock(Channel.class);
 		mockEvent = mock(Event.class);
 		mockTx = mock(Transaction.class);
-		kafkaSink = new KafkaSink();
+		kafkaSink = new DemoKafkaSink();
         kafkaSinkCounter = new KafkaSinkCounter("testSinkCounter");
 		
 		Field field = AbstractSink.class.getDeclaredField("channel");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockChannel);
 
-		field = KafkaSink.class.getDeclaredField("defaultTopic");
+		field = DemoKafkaSink.class.getDeclaredField("defaultTopic");
 		field.setAccessible(true);
 		field.set(kafkaSink, "defaultTopic");
 
-		field = KafkaSink.class.getDeclaredField("producer");
+		field = DemoKafkaSink.class.getDeclaredField("producer");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockProducer);
 
-        field = KafkaSink.class.getDeclaredField("counter");
+        field = DemoKafkaSink.class.getDeclaredField("counter");
         field.setAccessible(true);
         field.set(kafkaSink, kafkaSinkCounter);
 		
