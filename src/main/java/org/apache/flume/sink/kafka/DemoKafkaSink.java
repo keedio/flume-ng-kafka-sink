@@ -101,7 +101,7 @@ public class DemoKafkaSink extends AbstractSink implements Configurable {
 					+ "it's must be specified.");
 		}
 		dynamicTopic = context.getString("dynamicTopic");
-		zkConnect = context.getString("zookeeper.connect");
+		zkConnect = context.getString("zk.connect");
 		if (zkConnect == null) {
 			throw new ConfigurationException("zookeeper.connect configuration property not founs, "
 					+ "it's must be specified.");
