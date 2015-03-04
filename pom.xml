@@ -14,8 +14,8 @@
     </properties>
 
     <groupId>org.apache.flume.flume-ng-sinks</groupId>
-    <artifactId>flume-ng-kafka-sink</artifactId>
-    <version>${kafka.version}</version>
+    <artifactId>flume-ng-demo-kafka-sink</artifactId>
+    <version>0.0.1</version>
 
     <dependencies>
         <dependency>
