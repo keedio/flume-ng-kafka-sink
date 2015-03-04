@@ -18,26 +18,22 @@
  *******************************************************************************/
 package org.apache.flume.sink.kafka;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
+import kafka.utils.ZkUtils;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.flume.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.flume.interceptor.EnrichedEventBody;
 
 public class KafkaSinkUtil {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSinkUtil.class);
-	
-	//TODO: Delete this after Emmanuelle class has been added
-	private static int fakeMessageID=0;
 
 	public static Properties getKafkaConfigProperties(Context context) {
 		log.info("context={}",context.toString());
@@ -65,88 +61,47 @@ public class KafkaSinkUtil {
 	 * @param eventBody Body with the extra fields specified in dynamic topic String
 	 * @return Destination topic, if no pattern match null is returned
 	 */
-	public static String getDestinationTopic(String dynamicTopic, byte[] eventBody){
-		//Map<String,String> extraData = eventBody.getExtraData();
-		
-		// TODO: Change this harcoded source with Emmanuelle getExtraData() method
-		Map<String,String> extraData = new HashMap<String,String>();
-		
-		extraData.put("CLIENT", "Client" + fakeMessageID);
-		extraData.put("VDC_NAME", "VdcName" + fakeMessageID);
-		extraData.put("PRODUCT_TYPE", "ProductType" + fakeMessageID);
-		
-		fakeMessageID = (fakeMessageID + 1) % 3;
-		// END harcoded source
-		
-		// GET DYNAMIC TOPIC
-		String[] keys = dynamicTopic.split("-");
-		
-		for (int j=0;j<keys.length;j++)
-		log.debug("KEY "+ j+ " : " + keys[j]);
-		
-		int i=0;
-		while ( i<keys.length && extraData.containsKey(keys[i])){
-			i++;
+	public static String getDestinationTopic(ZkClient zkClient, String dynamicTopic, 
+			String defaultTopic, byte[] eventBody){
+		if (dynamicTopic == null){
+			log.debug("DynamicTopic not configured, sending message to default topic: {}", defaultTopic);
+			return defaultTopic;
 		}
 		
-		log.debug("KEYS.LENGTH: " + keys.length + " I ---->  " + i);
-		
-		// if all keys are found in extraData, the destination topic is build
-		String destinationTopic=null;
-		if (i==keys.length){
-			destinationTopic = new String();
-			for (i=0;i<keys.length;i++){
-				destinationTopic += extraData.get(keys[i]);
-				if (i!=keys.length-1)
-					destinationTopic += "-";
+		try{
+			Map<String,String> extraData = EnrichedEventBody.createFromEventBody(eventBody, true).getExtraData();
+			String[] keys = dynamicTopic.split("-");
+			
+			for (int j=0;j<keys.length;j++)
+				log.debug("KEY "+ j+ " : " + keys[j]);
+			
+			int i=0;
+			while ( i<keys.length && extraData.containsKey(keys[i])){
+				i++;
 			}
-		}
 			
-		log.debug("Dynamic destination topic for " + dynamicTopic + ": " + destinationTopic);
-			
-		return destinationTopic;
-		
-		/*
-		if (i==keys.size()){
-			String destinationTopic = dynamicTopic;
-			for (i=0;i<keys.size();i++){
-				destinationTopic.replaceFirst(FILTER_REGEX, extraData.get(keys.get(i)));
+			// if all keys are found in extraData, the destination topic is build
+			String destinationTopic=null;
+			if (i==keys.length){
+				destinationTopic = new String();
+				for (i=0;i<keys.length;i++){
+					destinationTopic += extraData.get(keys[i]);
+					if (i!=keys.length-1)
+						destinationTopic += "-";
+				}
+			}
+        	// If destination topic is not previously created the message is sent to the defaultTopic
+    		if (!ZkUtils.pathExists(zkClient, ZkUtils.getTopicConfigPath(destinationTopic))){
+    			log.warn("Topic {} not exists, sending message to default topic {}",destinationTopic, defaultTopic);
+    			return defaultTopic;
+    		}
 				
-			}
-			log.debug("Dynamic destination topic for " + dynamicTopic + ": " + destinationTopic);
-			return destinationTopic;
-		}*/
-	}
-	
-	/**
-	 * Returns a List of the keys used to build the destination topic
-	 * @param dynamicTopic The configuration String from properties file 
-	 * @return A List of the keys to build the destination Topic 
-	 */
-	/*
-	private static String[] getDynamicTopicKeys(String dynamicTopic){
-		/*
-		Pattern pattern = Pattern.compile(FILTER_REGEX);
-		log.debug("REGEX: " + FILTER_REGEX);
-		Matcher matcher = pattern.matcher(dynamicTopic);
-		List<String> topicKeys = new ArrayList<String>();
-		
-		log.debug("dynamicTopic: " + dynamicTopic);
-		log.debug("Count: " + matcher.groupCount());
-		log.debug("Matcher: " + matcher.toString());
-		log.debug("pattern: " + pattern.toString());
-		
-		for (int i=0;i<matcher.groupCount();i++){
-		    topicKeys.add(matcher.group(i).replace("%", ""));
+    		return destinationTopic;
+		}catch (IOException e){
+			log.warn("Extra data corruption in message, sending message to default topic: {}", defaultTopic);
+			return defaultTopic;
 		}
-		
-		log.debug("MARCELO -----> KEYS: " + topicKeys.toString());
-		
-		return topicKeys;
-		
-		return dynamicTopic.split("_");
 	}
-	*/
 }
 
 
