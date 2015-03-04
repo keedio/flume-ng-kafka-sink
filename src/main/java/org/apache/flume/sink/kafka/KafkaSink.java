@@ -21,6 +21,7 @@ package org.apache.flume.sink.kafka;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 
+import org.I0Itec.zkclient.ZkClient;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -49,14 +50,15 @@ import org.slf4j.LoggerFactory;
  */
 public class KafkaSink extends AbstractSink implements Configurable {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
-	private String defaultTopic, dynamicTopic;
+	private String defaultTopic, dynamicTopic, zkConnect;
 	private Producer<byte[], byte[]> producer;
 	private KafkaSinkCounter counter;
+	private ZkClient zkClient;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
 		Transaction tx = channel.getTransaction();
-		String destinationTopic = null;
+		String destTopic = null;
 		try {
 			tx.begin();
 			Event event = channel.take();
@@ -64,15 +66,10 @@ public class KafkaSink extends AbstractSink implements Configurable {
 				tx.commit();
 				return Status.READY;
 			}
-            try {
-            	if (dynamicTopic != null){
-            		destinationTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, event.getBody());
-            	}
-            	if (destinationTopic == null){
-            		destinationTopic = defaultTopic;
-            	}
-            	log.debug("Sending message to topic: " + destinationTopic);
-            	producer.send(new KeyedMessage<byte[], byte[]>(destinationTopic, event.getBody()));
+			try {
+				destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
+            				event.getBody());
+            	producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
                 counter.increaseCounterMessageSent();
             } catch (Exception e) {
                 counter.increaseCounterMessageSentError();
@@ -100,10 +97,17 @@ public class KafkaSink extends AbstractSink implements Configurable {
 	public void configure(Context context) {
 		defaultTopic = context.getString("defaultTopic");
 		if (defaultTopic == null) {
-			throw new ConfigurationException("Kafka default topic must be specified.");
+			throw new ConfigurationException("defaultTopic configuration property not found, "
+					+ "it's must be specified.");
 		}
 		dynamicTopic = context.getString("dynamicTopic");
-				
+		zkConnect = context.getString("zookeeper.connect");
+		if (zkConnect == null) {
+			throw new ConfigurationException("zookeeper.connect configuration property not founs, "
+					+ "it's must be specified.");
+		}
+		zkClient = new ZkClient(zkConnect);
+		
 		producer = KafkaSinkUtil.getProducer(context);
 		counter = new KafkaSinkCounter("SINK.Kafka-"+ getName());
 	}
