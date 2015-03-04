@@ -38,8 +38,6 @@ public class KafkaSinkUtil {
 	
 	//TODO: Delete this after Emmanuelle class has been added
 	private static int fakeMessageID=0;
-	
-	private static final String FILTER_REGEX="%[^%]+%";
 
 	public static Properties getKafkaConfigProperties(Context context) {
 		log.info("context={}",context.toString());
@@ -81,14 +79,28 @@ public class KafkaSinkUtil {
 		// END harcoded source
 		
 		// GET DYNAMIC TOPIC
-		List<String> keys = getDynamicTopicKeys(dynamicTopic);
+		String[] keys = dynamicTopic.split("_");
 		
 		int i=0;
-		while (extraData.containsKey(keys) && i<keys.size()){
+		while (extraData.containsKey(keys) && i<keys.length){
 			i++;
 		}
 		
 		// if all keys are found in extraData, the destination topic is build
+		String destinationTopic=new String();
+		if (i==keys.length){
+			for (i=0;i<keys.length;i++){
+				destinationTopic.concat(extraData.get(keys[i]));
+				if (i!=keys.length-1)
+					destinationTopic.concat("_");
+			}
+		}
+			
+		log.debug("Dynamic destination topic for " + dynamicTopic + ": " + destinationTopic);
+			
+		return destinationTopic;
+		
+		/*
 		if (i==keys.size()){
 			String destinationTopic = dynamicTopic;
 			for (i=0;i<keys.size();i++){
@@ -97,10 +109,7 @@ public class KafkaSinkUtil {
 			}
 			log.debug("Dynamic destination topic for " + dynamicTopic + ": " + destinationTopic);
 			return destinationTopic;
-		}
-		
-		
-		return null;
+		}*/
 	}
 	
 	/**
@@ -108,7 +117,9 @@ public class KafkaSinkUtil {
 	 * @param dynamicTopic The configuration String from properties file 
 	 * @return A List of the keys to build the destination Topic 
 	 */
-	private static List<String> getDynamicTopicKeys(String dynamicTopic){
+	/*
+	private static String[] getDynamicTopicKeys(String dynamicTopic){
+		/*
 		Pattern pattern = Pattern.compile(FILTER_REGEX);
 		log.debug("REGEX: " + FILTER_REGEX);
 		Matcher matcher = pattern.matcher(dynamicTopic);
@@ -126,7 +137,10 @@ public class KafkaSinkUtil {
 		log.debug("MARCELO -----> KEYS: " + topicKeys.toString());
 		
 		return topicKeys;
+		
+		return dynamicTopic.split("_");
 	}
+	*/
 }
 
 
