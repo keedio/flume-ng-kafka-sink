@@ -32,6 +32,8 @@ import org.apache.flume.EventDeliveryException;
 import org.apache.flume.Sink.Status;
 import org.apache.flume.Transaction;
 import org.apache.flume.sink.AbstractSink;
+import org.apache.flume.sink.demo.kafka.DemoKafkaSink;
+import org.apache.flume.sink.demo.kafka.KafkaSinkCounter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

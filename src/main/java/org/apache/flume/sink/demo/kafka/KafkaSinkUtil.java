@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.apache.flume.sink.demo.kafka;
 
 import java.io.IOException;
 import java.util.Map;

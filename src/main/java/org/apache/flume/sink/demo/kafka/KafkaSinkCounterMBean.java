@@ -1,4 +1,4 @@
-package org.apache.flume.sink.kafka;
+package org.apache.flume.sink.demo.kafka;
 
 public interface KafkaSinkCounterMBean {
 

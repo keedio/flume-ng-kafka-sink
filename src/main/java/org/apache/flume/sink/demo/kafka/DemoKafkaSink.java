@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.apache.flume.sink.demo.kafka;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
@@ -71,14 +71,17 @@ public class DemoKafkaSink extends AbstractSink implements Configurable {
 				//destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
             	//		event.getBody());
 				destTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, defaultTopic, event.getBody());
-            	producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
+				
+				log.debug("Destination topic: {}", destTopic);
+				
+				producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
                 counter.increaseCounterMessageSent();
             } catch (Exception e) {
                 counter.increaseCounterMessageSentError();
                 throw e;
             }
 
-            log.trace("Message: {}", event.getBody());
+            log.debug("Message: {}", new String(event.getBody()));
             tx.commit();
             return Status.READY;
 

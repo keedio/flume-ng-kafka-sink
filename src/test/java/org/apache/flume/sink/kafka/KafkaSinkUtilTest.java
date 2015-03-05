@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import java.util.Properties;
 
 import org.apache.flume.Context;
+import org.apache.flume.sink.demo.kafka.KafkaSinkUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
