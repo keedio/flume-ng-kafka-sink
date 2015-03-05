@@ -24,9 +24,9 @@ import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
-import kafka.utils.ZkUtils;
+//import kafka.utils.ZkUtils;
 
-import org.I0Itec.zkclient.ZkClient;
+//import org.I0Itec.zkclient.ZkClient;
 import org.apache.flume.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +61,9 @@ public class KafkaSinkUtil {
 	 * @param eventBody Body with the extra fields specified in dynamic topic String
 	 * @return Destination topic, if no pattern match null is returned
 	 */
-	public static String getDestinationTopic(ZkClient zkClient, String dynamicTopic, 
-			String defaultTopic, byte[] eventBody){
+	
+	//public static String getDestinationTopic(ZkClient zkClient, String dynamicTopic,String defaultTopic, byte[] eventBody){
+	public static String getDestinationTopic(String dynamicTopic, String defaultTopic, byte[] eventBody){
 		if (dynamicTopic == null){
 			log.debug("DynamicTopic not configured, sending message to default topic: {}", defaultTopic);
 			return defaultTopic;
@@ -91,10 +92,10 @@ public class KafkaSinkUtil {
 				}
 			}
         	// If destination topic is not previously created the message is sent to the defaultTopic
-    		if (!ZkUtils.pathExists(zkClient, ZkUtils.getTopicConfigPath(destinationTopic))){
+    		/*if (!ZkUtils.pathExists(zkClient, ZkUtils.getTopicConfigPath(destinationTopic))){
     			log.warn("Topic {} not exists, sending message to default topic {}",destinationTopic, defaultTopic);
     			return defaultTopic;
-    		}
+    		}*/
 				
     		return destinationTopic;
 		}catch (IOException e){

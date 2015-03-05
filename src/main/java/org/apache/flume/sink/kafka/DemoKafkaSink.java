@@ -21,7 +21,7 @@ package org.apache.flume.sink.kafka;
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;
 
-import org.I0Itec.zkclient.ZkClient;
+//import org.I0Itec.zkclient.ZkClient;
 import org.apache.flume.Channel;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -50,10 +50,11 @@ import org.slf4j.LoggerFactory;
  */
 public class DemoKafkaSink extends AbstractSink implements Configurable {
 	private static final Logger log = LoggerFactory.getLogger(DemoKafkaSink.class);
-	private String defaultTopic, dynamicTopic, zkConnect;
+	private String defaultTopic, dynamicTopic;
+	//private String zkConnect;
 	private Producer<byte[], byte[]> producer;
 	private KafkaSinkCounter counter;
-	private ZkClient zkClient;
+	//private ZkClient zkClient;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
@@ -67,8 +68,9 @@ public class DemoKafkaSink extends AbstractSink implements Configurable {
 				return Status.READY;
 			}
 			try {
-				destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
-            				event.getBody());
+				//destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
+            	//		event.getBody());
+				destTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, defaultTopic, event.getBody());
             	producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
                 counter.increaseCounterMessageSent();
             } catch (Exception e) {
@@ -101,12 +103,13 @@ public class DemoKafkaSink extends AbstractSink implements Configurable {
 					+ "it's must be specified.");
 		}
 		dynamicTopic = context.getString("dynamicTopic");
-		zkConnect = context.getString("zk.connect");
-		if (zkConnect == null) {
-			throw new ConfigurationException("zookeeper.connect configuration property not founs, "
-					+ "it's must be specified.");
-		}
-		zkClient = new ZkClient(zkConnect);
+		
+		//zkConnect = context.getString("zk.connect");
+		//if (zkConnect == null) {
+		//	throw new ConfigurationException("zookeeper.connect configuration property not founs, "
+		//			+ "it's must be specified.");
+		//}
+		//zkClient = new ZkClient(zkConnect);
 		
 		producer = KafkaSinkUtil.getProducer(context);
 		counter = new KafkaSinkCounter("SINK.Kafka-"+ getName());
