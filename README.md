@@ -2,7 +2,20 @@
 
 This project is used for [flume-ng](https://github.com/apache/flume) to communicate with [kafka 0.8.1.1](http://kafka.apache.org/08/quickstart.html).
 
-Aditionally to original plugin, this one implements a dynamic kafka topic selection method. It's used an ExtraData field in flume event body to build the kafka destintation topic. 
+Aditionally to original plugin, this one implements a dynamic kafka topic selection method. It's used an ExtraData field in flume event body to build the kafka destintation topic.
+
+This plugin depends on [flume-enrichment-interceptor](https://github.com/keedio/flume-enrichment-interceptor-skeleton)
+
+## Build
+
+```mvn package```
+
+## Deploy 
+
+You have to copy the .jar library generated in target to the plugins.d lib folder of your flume installation  
+(e.g /usr/lib/flume/plugins.d/flume-ng-demo-kafka-sink/lib
+and the .jar libraries in target/libs in plugins.d libext folder  
+(e.g /plugins.d/flume-ng-demo-kafka-sink/libext)
 
 ## Working mode: 
 
@@ -11,14 +24,15 @@ The format of this parameter is key1-key2..., so it's search in the ExtraData fi
     
 ### Example:
 
-"dynamicTopic = hostname-domain"
-Flume eventBody = { "extraData":{"hostname": "localhost", "domain": "localdomain"}, "message": "the original body string"}
-The destination topic to be build will be "localhost-localdomain"
+- "dynamicTopic = hostname-domain"  
+- Flume eventBody = { "extraData":{"hostname": "localhost", "domain": "localdomain"}, "message": "the original body string"}  
+  
+The destination topic to be build will be <b>"localhost-localdomain"</b>  
 If this topic doesn't exists the defaultTopic will be used as destination topic.
     
 
-Configuration example of Kafka Demo Sink
-----------
+### Configuration example of Kafka Demo Sink
+
 ```ini
     # In async producer:
     agent.sinks.kafka-sink.channel = memory-channel
@@ -31,9 +45,3 @@ Configuration example of Kafka Demo Sink
     agent.sinks.kafka-sink.producer.type = async
     agent.sinks.kafka-sink.metadata.broker.list = hadoop-manager:9092,hadoop-node1:9092,hadoop-node2:9092
 ```
-Deploy notice
----------
-You have to copy the .jar library generated in target to the plugins.d lib folder of your flume installation  
-(e.g /usr/lib/flume/plugins.d/flume-ng-demo-kafka-sink/lib
-and the .jar libraries in target/libs in plugins.d libext folder  
-(e.g /plugins.d/flume-ng-demo-kafka-sink/libext)
