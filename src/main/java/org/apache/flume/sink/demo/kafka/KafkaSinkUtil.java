@@ -91,11 +91,9 @@ public class KafkaSinkUtil {
 						destinationTopic += "-";
 				}
 			}
-        	// If destination topic is not previously created the message is sent to the defaultTopic
-    		/*if (!ZkUtils.pathExists(zkClient, ZkUtils.getTopicConfigPath(destinationTopic))){
-    			log.warn("Topic {} not exists, sending message to default topic {}",destinationTopic, defaultTopic);
-    			return defaultTopic;
-    		}*/
+			else{
+				destinationTopic=defaultTopic;
+			}
 				
     		return destinationTopic;
 		}catch (IOException e){
