@@ -86,7 +86,7 @@ public class KafkaSinkUtil {
 			if (i==keys.length){
 				destinationTopic = new String();
 				for (i=0;i<keys.length;i++){
-					destinationTopic += extraData.get(keys[i]);
+					destinationTopic += extraData.get(keys[i]).replace(" ", "_");
 					if (i!=keys.length-1)
 						destinationTopic += "-";
 				}
