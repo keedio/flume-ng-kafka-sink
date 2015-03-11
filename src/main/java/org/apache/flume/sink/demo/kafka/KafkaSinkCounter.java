@@ -18,7 +18,7 @@ public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSink
 	private final ScheduledExecutorService scheduler = Executors
 			.newScheduledThreadPool(1);
 
-	public static final String[] ATTRIBUTES = { COUNTER_MESSAGE_SENT,
+	private static final String[] ATTRIBUTES = { COUNTER_MESSAGE_SENT,
 			COUNTER_MESSAGE_SENT_ERROR, CURRENT_THROUGHPUT, AVERAGE_THROUGHPUT };
 
 	public KafkaSinkCounter(String name) {
@@ -31,26 +31,32 @@ public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSink
 				TimeUnit.SECONDS);
 	}
 
+	@Override
 	public void increaseCounterMessageSent() {
 		increment(COUNTER_MESSAGE_SENT);
 	}
 
+	@Override
 	public long getCounterMessageSent() {
 		return get(COUNTER_MESSAGE_SENT);
 	}
 
+	@Override
 	public void increaseCounterMessageSentError() {
 		increment(COUNTER_MESSAGE_SENT_ERROR);
 	}
 
+	@Override
 	public long getCounterMessageSentError() {
 		return get(COUNTER_MESSAGE_SENT_ERROR);
 	}
 
+	@Override
 	public long getAverageThroughput() {
 		return get(AVERAGE_THROUGHPUT);
 	}
 
+	@Override
 	public long getCurrentThroughput() {
 		return get(CURRENT_THROUGHPUT);
 	}
@@ -74,7 +80,7 @@ public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSink
 
 				if (currentTime > startTime) {
 					averageThroughput = currentMessages
-							/ ((currentTime - startTime));
+							/ (currentTime - startTime);
 				}
 				set(AVERAGE_THROUGHPUT, averageThroughput);
 				previousMessages = currentMessages;
