@@ -18,8 +18,8 @@
  *******************************************************************************/
 package org.apache.flume.sink.kafka;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -32,12 +32,10 @@ import kafka.producer.ProducerConfig;
 import org.apache.flume.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.flume.interceptor.EnrichedEventBody;
 
-public class KafkaSinkUtil {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSinkUtil.class);
-	
-	//TODO: Delete this after Emmanuelle class has been added
-	private static int fakeMessageID=0;
+public class KafkaDynamicSinkUtil {
+	private static final Logger log = LoggerFactory.getLogger(KafkaDynamicSinkUtil.class);
 	
 	private static final String FILTER_REGEX="%[^%]+%";
 
@@ -67,40 +65,43 @@ public class KafkaSinkUtil {
 	 * @param eventBody Body with the extra fields specified in dynamic topic String
 	 * @return Destination topic, if no pattern match null is returned
 	 */
-	public static String getDestinationTopic(String dynamicTopic, byte[] eventBody){
-		//Map<String,String> extraData = eventBody.getExtraData();
-		
-		// TODO: Change this harcoded source with Emmanuelle getExtraData() method
-		Map<String,String> extraData = new HashMap<String,String>();
-		
-		extraData.put("CLIENT", "Client-" + fakeMessageID);
-		extraData.put("VDC_NAME", "VdcName-" + fakeMessageID);
-		extraData.put("PRODUC_TYPE", "ProductType-" + fakeMessageID);
-		
-		fakeMessageID = (fakeMessageID + 1) % 2;
-		// END harcoded source
-		
-		// GET DYNAMIC TOPIC
-		List<String> keys = getDynamicTopicKeys(dynamicTopic);
-		
-		int i=0;
-		while (extraData.containsKey(keys) && i<keys.size()){
-			i++;
+	public static String getDestinationTopic(String dynamicTopic, String defaultTopic, byte[] eventBody){
+		if (dynamicTopic == null){
+			log.debug("DynamicTopic not configured, sending message to default topic: {}", defaultTopic);
+			return defaultTopic;
 		}
-		
-		// if all keys are found in extraData, the destination topic is build
-		if (i==keys.size()){
-			String destinationTopic = dynamicTopic;
-			for (i=0;i<keys.size();i++){
-				destinationTopic.replaceFirst(FILTER_REGEX, extraData.get(keys.get(i)));
-				
+		try{
+			Map<String,String> extraData = EnrichedEventBody.createFromEventBody(eventBody, true).getExtraData();
+			
+			// GET DYNAMIC TOPIC
+			List<String> keys = getDynamicTopicKeys(dynamicTopic);
+			
+			int i=0;
+			while ( i<keys.size() && extraData.containsKey(keys.get(i))){
+				i++;
 			}
-			log.debug("Dynamic destination topic for " + dynamicTopic + ": " + destinationTopic);
-			return destinationTopic;
+			// if all keys are found in extraData, the destination topic is build		
+			if (i==keys.size()){
+				String destinationTopic = dynamicTopic;
+				destinationTopic = destinationTopic.replaceAll("%", "");
+				for (i=0;i<keys.size();i++){
+					destinationTopic = destinationTopic.replace(keys.get(i), extraData.get(keys.get(i)));
+				}
+				
+				// Substitute all blank spaces with _
+				destinationTopic = destinationTopic.replaceAll(" ", "_");
+				log.warn("Dynamic destination topic with pattern {}: {}", dynamicTopic, destinationTopic);
+				return destinationTopic;
+			}
+			// if all keys are not found in extra data the default topic is returned 
+			else{
+				log.warn("Keys: {} not found in extra data, sending to default topic: {}", keys, defaultTopic);
+				return defaultTopic;
+			}
+		}catch (IOException e){
+			log.warn("Extra data corruption in message, sending message to default topic: {}", defaultTopic);
+			return defaultTopic;
 		}
-		
-		
-		return null;
 	}
 	
 	/**
@@ -114,16 +115,10 @@ public class KafkaSinkUtil {
 		Matcher matcher = pattern.matcher(dynamicTopic);
 		List<String> topicKeys = new ArrayList<String>();
 		
-		log.debug("dynamicTopic: " + dynamicTopic);
-		log.debug("Count: " + matcher.groupCount());
-		log.debug("Matcher: " + matcher.toString());
-		log.debug("pattern: " + pattern.toString());
-		
-		for (int i=0;i<matcher.groupCount();i++){
-		    topicKeys.add(matcher.group(i).replace("%", ""));
+		int i=0;
+		while (matcher.find()){
+				topicKeys.add(matcher.group(i).replace("%", ""));
 		}
-		
-		log.debug("MARCELO -----> KEYS: " + topicKeys.toString());
 		
 		return topicKeys;
 	}

@@ -38,7 +38,7 @@ public class KafkaSinkUtilTest {
 		context.put("type", "KafkaSource");
 		context.put("defaultTopic", "defaultTopic");
 		context.put("dynamicTopic", "$KEY$");
-		props = KafkaSinkUtil.getKafkaConfigProperties(context);
+		props = KafkaDynamicSinkUtil.getKafkaConfigProperties(context);
 	}
 
 	@After

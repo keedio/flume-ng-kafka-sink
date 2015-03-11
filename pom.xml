@@ -14,8 +14,8 @@
     </properties>
 
     <groupId>org.apache.flume.flume-ng-sinks</groupId>
-    <artifactId>flume-ng-kafka-sink</artifactId>
-    <version>${kafka.version}</version>
+    <artifactId>flume-ng-dynamic-topic-kafka-sink</artifactId>
+    <version>0.0.2</version>
 
     <dependencies>
         <dependency>
@@ -51,6 +51,12 @@
             <groupId>com.yammer.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>2.2.0</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.apache.flume</groupId>
+        	<artifactId>flume-enrichment-interceptor</artifactId>
+        	<version>0.0.2</version>
+        	<scope>provided</scope>
         </dependency>
     </dependencies>
 

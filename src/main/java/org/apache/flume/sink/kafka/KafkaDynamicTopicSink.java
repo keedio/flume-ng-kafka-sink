@@ -29,6 +29,7 @@ import org.apache.flume.Transaction;
 import org.apache.flume.conf.Configurable;
 import org.apache.flume.conf.ConfigurationException;
 import org.apache.flume.sink.AbstractSink;
+import org.apache.flume.sink.kafka.KafkaDynamicSinkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,18 +46,20 @@ import org.slf4j.LoggerFactory;
  * available.<o> <tt>serializer.class: </tt>{@kafka.serializer.StringEncoder
  * 
  * 
+ * 
  * }
  */
-public class KafkaSink extends AbstractSink implements Configurable {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
+public class KafkaDynamicTopicSink extends AbstractSink implements Configurable {
+	private static final Logger log = LoggerFactory
+			.getLogger(KafkaDynamicTopicSink.class);
 	private String defaultTopic, dynamicTopic;
 	private Producer<byte[], byte[]> producer;
-	private KafkaSinkCounter counter;
+	private KafkaDynamicSinkCounter counter;
 
 	public Status process() throws EventDeliveryException {
 		Channel channel = getChannel();
 		Transaction tx = channel.getTransaction();
-		String destinationTopic = null;
+		String destTopic = "";
 		try {
 			tx.begin();
 			Event event = channel.take();
@@ -64,22 +67,18 @@ public class KafkaSink extends AbstractSink implements Configurable {
 				tx.commit();
 				return Status.READY;
 			}
-            try {
-            	if (dynamicTopic != null){
-            		destinationTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, event.getBody());
-            	}
-            	if (destinationTopic == null){
-            		destinationTopic = defaultTopic;
-            	}
-            	log.debug("Sending message to topic: " + destinationTopic);
-            	producer.send(new KeyedMessage<byte[], byte[]>(destinationTopic, event.getBody()));
-                counter.increaseCounterMessageSent();
+			try {
+				destTopic = KafkaDynamicSinkUtil.getDestinationTopic(dynamicTopic, defaultTopic, event.getBody());
+				
+				log.debug("Destination topic: {}", destTopic);
+				producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
+				counter.increaseCounterMessageSent();
             } catch (Exception e) {
                 counter.increaseCounterMessageSentError();
                 throw e;
             }
 
-            log.trace("Message: {}", event.getBody());
+            log.debug("Message: {}", new String(event.getBody()));
             tx.commit();
             return Status.READY;
 
@@ -100,12 +99,13 @@ public class KafkaSink extends AbstractSink implements Configurable {
 	public void configure(Context context) {
 		defaultTopic = context.getString("defaultTopic");
 		if (defaultTopic == null) {
-			throw new ConfigurationException("Kafka default topic must be specified.");
+			throw new ConfigurationException(
+					"Kafka default topic must be specified.");
 		}
 		dynamicTopic = context.getString("dynamicTopic");
-				
-		producer = KafkaSinkUtil.getProducer(context);
-		counter = new KafkaSinkCounter("SINK.Kafka-"+ getName());
+
+		producer = KafkaDynamicSinkUtil.getProducer(context);
+		counter = new KafkaDynamicSinkCounter("SINK.Kafka-" + getName());
 	}
 
 	@Override

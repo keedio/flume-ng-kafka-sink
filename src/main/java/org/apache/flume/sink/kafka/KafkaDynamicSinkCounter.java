@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.flume.instrumentation.MonitoredCounterGroup;
 
-public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSinkCounterMBean {
+public class KafkaDynamicSinkCounter extends MonitoredCounterGroup implements KafkaDynamicSinkCounterMBean {
 	
 	private long startTime;
 
@@ -21,7 +21,7 @@ public class KafkaSinkCounter extends MonitoredCounterGroup implements KafkaSink
 	public static final String[] ATTRIBUTES = { COUNTER_MESSAGE_SENT,
 			COUNTER_MESSAGE_SENT_ERROR, CURRENT_THROUGHPUT, AVERAGE_THROUGHPUT };
 
-	public KafkaSinkCounter(String name) {
+	public KafkaDynamicSinkCounter(String name) {
 		super(MonitoredCounterGroup.Type.SINK, name, ATTRIBUTES);
 		startTime = System.currentTimeMillis() / 1000;
 

@@ -1,6 +1,6 @@
 package org.apache.flume.sink.kafka;
 
-public interface KafkaSinkCounterMBean {
+public interface KafkaDynamicSinkCounterMBean {
 
 	public void increaseCounterMessageSent();
 

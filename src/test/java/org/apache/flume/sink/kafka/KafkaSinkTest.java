@@ -41,12 +41,12 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 public class KafkaSinkTest {
 
-	private KafkaSink kafkaSink;
+	private KafkaDynamicTopicSink kafkaSink;
 	private Producer<byte[], byte[]> mockProducer;
 	private Channel mockChannel;
 	private Event mockEvent;
 	private Transaction mockTx;
-    private KafkaSinkCounter kafkaSinkCounter;
+    private KafkaDynamicSinkCounter kafkaSinkCounter;
 
 	@SuppressWarnings("unchecked")
 	@Before
@@ -55,22 +55,22 @@ public class KafkaSinkTest {
 		mockChannel = mock(Channel.class);
 		mockEvent = mock(Event.class);
 		mockTx = mock(Transaction.class);
-		kafkaSink = new KafkaSink();
-        kafkaSinkCounter = new KafkaSinkCounter("testSinkCounter");
+		kafkaSink = new KafkaDynamicTopicSink();
+        kafkaSinkCounter = new KafkaDynamicSinkCounter("testSinkCounter");
 		
 		Field field = AbstractSink.class.getDeclaredField("channel");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockChannel);
 
-		field = KafkaSink.class.getDeclaredField("defaultTopic");
+		field = KafkaDynamicTopicSink.class.getDeclaredField("defaultTopic");
 		field.setAccessible(true);
 		field.set(kafkaSink, "defaultTopic");
 
-		field = KafkaSink.class.getDeclaredField("producer");
+		field = KafkaDynamicTopicSink.class.getDeclaredField("producer");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockProducer);
 
-        field = KafkaSink.class.getDeclaredField("counter");
+        field = KafkaDynamicTopicSink.class.getDeclaredField("counter");
         field.setAccessible(true);
         field.set(kafkaSink, kafkaSinkCounter);
 		
