@@ -36,7 +36,7 @@ If this topic doesn't exists the defaultTopic will be used as destination topic.
 ```ini
     # In async producer:
     agent.sinks.kafka-sink.channel = memory-channel
-    agent.sinks.kafka-sink.type = org.apache.flume.sink.kafka.KafkaSink
+    agent.sinks.kafka-sink.type = org.keedio.flume.sink.KafkaSink
     agent.sinks.kafka-sink.zk.connect = hadoop-manager:2181,hadoop-node1:2181,hadoop-node2:2181
     agent.sinks.kafka-sink.defaultTopic = default
     agent.sinks.kafka-sink.dynamicTopic = hostname-item

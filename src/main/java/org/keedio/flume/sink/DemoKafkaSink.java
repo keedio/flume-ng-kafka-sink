@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.demo.kafka;
+package org.keedio.flume.sink;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.KeyedMessage;

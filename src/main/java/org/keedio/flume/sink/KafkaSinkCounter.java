@@ -1,4 +1,4 @@
-package org.apache.flume.sink.demo.kafka;
+package org.keedio.flume.sink;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

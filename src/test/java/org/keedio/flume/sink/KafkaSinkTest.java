@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.keedio.flume.sink;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -32,14 +32,12 @@ import org.apache.flume.EventDeliveryException;
 import org.apache.flume.Sink.Status;
 import org.apache.flume.Transaction;
 import org.apache.flume.sink.AbstractSink;
-import org.apache.flume.sink.demo.kafka.DemoKafkaSink;
-import org.apache.flume.sink.demo.kafka.KafkaSinkCounter;
+import org.keedio.flume.sink.DemoKafkaSink;
+import org.keedio.flume.sink.KafkaSinkCounter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.runners.MockitoJUnitRunner;
 
 public class KafkaSinkTest {
 

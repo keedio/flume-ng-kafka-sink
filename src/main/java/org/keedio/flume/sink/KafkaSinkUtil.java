@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.demo.kafka;
+package org.keedio.flume.sink;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,13 +24,10 @@ import java.util.Properties;
 
 import kafka.javaapi.producer.Producer;
 import kafka.producer.ProducerConfig;
-//import kafka.utils.ZkUtils;
-
-//import org.I0Itec.zkclient.ZkClient;
 import org.apache.flume.Context;
+import org.keedio.flume.interceptor.enrichment.interceptor.EnrichedEventBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.flume.interceptor.EnrichedEventBody;
 
 public class KafkaSinkUtil {
 	private static final Logger log = LoggerFactory.getLogger(KafkaSinkUtil.class);

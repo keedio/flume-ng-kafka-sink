@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.keedio.flume.sink;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNull;
 import java.util.Properties;
 
 import org.apache.flume.Context;
-import org.apache.flume.sink.demo.kafka.KafkaSinkUtil;
+import org.keedio.flume.sink.KafkaSinkUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
