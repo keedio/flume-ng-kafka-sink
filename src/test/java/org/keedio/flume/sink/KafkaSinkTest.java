@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.keedio.flume.sink;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
@@ -32,16 +32,16 @@ import org.apache.flume.EventDeliveryException;
 import org.apache.flume.Sink.Status;
 import org.apache.flume.Transaction;
 import org.apache.flume.sink.AbstractSink;
+import org.keedio.flume.sink.DemoKafkaSink;
+import org.keedio.flume.sink.KafkaSinkCounter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.runners.MockitoJUnitRunner;
 
 public class KafkaSinkTest {
 
-	private KafkaSink kafkaSink;
+	private DemoKafkaSink kafkaSink;
 	private Producer<byte[], byte[]> mockProducer;
 	private Channel mockChannel;
 	private Event mockEvent;
@@ -55,22 +55,22 @@ public class KafkaSinkTest {
 		mockChannel = mock(Channel.class);
 		mockEvent = mock(Event.class);
 		mockTx = mock(Transaction.class);
-		kafkaSink = new KafkaSink();
+		kafkaSink = new DemoKafkaSink();
         kafkaSinkCounter = new KafkaSinkCounter("testSinkCounter");
 		
 		Field field = AbstractSink.class.getDeclaredField("channel");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockChannel);
 
-		field = KafkaSink.class.getDeclaredField("topic");
+		field = DemoKafkaSink.class.getDeclaredField("defaultTopic");
 		field.setAccessible(true);
-		field.set(kafkaSink, "test");
+		field.set(kafkaSink, "defaultTopic");
 
-		field = KafkaSink.class.getDeclaredField("producer");
+		field = DemoKafkaSink.class.getDeclaredField("producer");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockProducer);
 
-        field = KafkaSink.class.getDeclaredField("counter");
+        field = DemoKafkaSink.class.getDeclaredField("counter");
         field.setAccessible(true);
         field.set(kafkaSink, kafkaSinkCounter);
 		

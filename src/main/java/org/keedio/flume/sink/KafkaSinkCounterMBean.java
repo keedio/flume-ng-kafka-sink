@@ -1,7 +1,7 @@
-package org.apache.flume.sink.kafka;
+package org.keedio.flume.sink;
 
 public interface KafkaSinkCounterMBean {
-
+	
 	public void increaseCounterMessageSent();
 
 	public void increaseCounterMessageSentError();
@@ -13,5 +13,4 @@ public interface KafkaSinkCounterMBean {
 	public long getCurrentThroughput();
 
 	public long getAverageThroughput();
-
 }

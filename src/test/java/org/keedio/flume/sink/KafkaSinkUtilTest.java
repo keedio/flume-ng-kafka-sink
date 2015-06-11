@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.apache.flume.sink.kafka;
+package org.keedio.flume.sink;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import java.util.Properties;
 
 import org.apache.flume.Context;
+import org.keedio.flume.sink.KafkaSinkUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,8 @@ public class KafkaSinkUtilTest {
 		Context context = new Context();
 		context.put("consumer.timeout", "10");
 		context.put("type", "KafkaSource");
-		context.put("topic", "test");
+		context.put("defaultTopic", "defaultTopic");
+		context.put("dynamicTopic", "$KEY$");
 		props = KafkaSinkUtil.getKafkaConfigProperties(context);
 	}
 
@@ -47,8 +49,9 @@ public class KafkaSinkUtilTest {
 	@Test
 	public void testGetKafkaConfigParameter() {
 		assertEquals("10",props.getProperty("consumer.timeout"));
-		assertNull(props.getProperty("topic"));
+		assertNull(props.getProperty("defaultTopic"));
 		assertNull(props.getProperty("type"));
+		assertNull(props.getProperty("dynamicTopic"));
 	}
 
 	@Test
