@@ -15,7 +15,7 @@
 
     <groupId>org.keedio.flume.sink</groupId>
     <artifactId>kafka-sink</artifactId>
-    <version>0.0.5-SNAPSHOT</version>
+    <version>0.0.6-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
