@@ -32,7 +32,7 @@ import org.apache.flume.EventDeliveryException;
 import org.apache.flume.Sink.Status;
 import org.apache.flume.Transaction;
 import org.apache.flume.sink.AbstractSink;
-import org.keedio.flume.sink.DemoKafkaSink;
+import org.keedio.flume.sink.KafkaSink;
 import org.keedio.flume.sink.KafkaSinkCounter;
 import org.junit.After;
 import org.junit.Before;
@@ -41,7 +41,7 @@ import org.mockito.Matchers;
 
 public class KafkaSinkTest {
 
-	private DemoKafkaSink kafkaSink;
+	private KafkaSink kafkaSink;
 	private Producer<byte[], byte[]> mockProducer;
 	private Channel mockChannel;
 	private Event mockEvent;
@@ -55,22 +55,22 @@ public class KafkaSinkTest {
 		mockChannel = mock(Channel.class);
 		mockEvent = mock(Event.class);
 		mockTx = mock(Transaction.class);
-		kafkaSink = new DemoKafkaSink();
+		kafkaSink = new KafkaSink();
         kafkaSinkCounter = new KafkaSinkCounter("testSinkCounter");
 		
 		Field field = AbstractSink.class.getDeclaredField("channel");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockChannel);
 
-		field = DemoKafkaSink.class.getDeclaredField("defaultTopic");
+		field = KafkaSink.class.getDeclaredField("defaultTopic");
 		field.setAccessible(true);
 		field.set(kafkaSink, "defaultTopic");
 
-		field = DemoKafkaSink.class.getDeclaredField("producer");
+		field = KafkaSink.class.getDeclaredField("producer");
 		field.setAccessible(true);
 		field.set(kafkaSink, mockProducer);
 
-        field = DemoKafkaSink.class.getDeclaredField("counter");
+        field = KafkaSink.class.getDeclaredField("counter");
         field.setAccessible(true);
         field.set(kafkaSink, kafkaSinkCounter);
 		
