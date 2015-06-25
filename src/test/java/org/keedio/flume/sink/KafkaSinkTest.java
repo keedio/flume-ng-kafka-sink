@@ -129,7 +129,7 @@ public class KafkaSinkTest {
         verify(mockTx, times(0)).commit();
         verify(mockTx, times(1)).rollback();
         verify(mockTx, times(1)).close();
-        assertEquals(0, kafkaSinkCounter.getCounterMessageSentError());
+        assertEquals(1, kafkaSinkCounter.getCounterMessageSentError());
         assertEquals(0, kafkaSinkCounter.getCounterMessageSent());
         assertEquals(Status.BACKOFF, status);
     }

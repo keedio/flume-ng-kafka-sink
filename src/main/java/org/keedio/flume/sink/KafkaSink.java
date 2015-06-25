@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *  
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *  
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -44,90 +44,82 @@ import org.slf4j.LoggerFactory;
  * <p>
  * <tt>producer.type: </tt> type of producer of kafka, async or sync is
  * available.<o> <tt>serializer.class: </tt>{@kafka.serializer.StringEncoder
- * 
- * 
+ *
+ *
  * }
  */
 public class KafkaSink extends AbstractSink implements Configurable {
-	private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
-	private String defaultTopic, dynamicTopic;
-	//private String zkConnect;
-	private Producer<byte[], byte[]> producer;
-	private KafkaSinkCounter counter;
-	//private ZkClient zkClient;
+    private static final Logger log = LoggerFactory.getLogger(KafkaSink.class);
+    private String defaultTopic, dynamicTopic;
+    //private String zkConnect;
+    private Producer<byte[], byte[]> producer;
+    private KafkaSinkCounter counter;
+    //private ZkClient zkClient;
 
-	public Status process() throws EventDeliveryException {
-		Channel channel = getChannel();
-		Transaction tx = channel.getTransaction();
-		String destTopic = null;
-		try {
-			tx.begin();
-			Event event = channel.take();
-			if (event == null) {
-				tx.commit();
-				return Status.BACKOFF;
-			}
-			try {
-				//destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
-            	//		event.getBody());
-				destTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, defaultTopic, event.getBody());
-				
-				log.debug("Destination topic: {}", destTopic);
-				
-				producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
-                counter.increaseCounterMessageSent();
-            } catch (Exception e) {
-                counter.increaseCounterMessageSentError();
-                throw e;
+    public Status process() throws EventDeliveryException {
+        Channel channel = getChannel();
+        Transaction tx = channel.getTransaction();
+        String destTopic = null;
+        try {
+            tx.begin();
+            Event event = channel.take();
+            if (event == null) {
+                tx.commit();
+                return Status.READY;
             }
+
+            //destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic,
+            //		event.getBody());
+            destTopic = KafkaSinkUtil.getDestinationTopic(dynamicTopic, defaultTopic, event.getBody());
+
+            log.debug("Destination topic: {}", destTopic);
+
+            producer.send(new KeyedMessage<byte[], byte[]>(destTopic, event.getBody()));
+            counter.increaseCounterMessageSent();
 
             log.debug("Message: {}", new String(event.getBody()));
             tx.commit();
             return Status.READY;
 
         } catch (Exception e) {
+            tx.rollback();
             log.error("KafkaSink Exception:{}", e);
+            counter.increaseCounterMessageSentError();
+            return Status.BACKOFF;
+        } finally {
+            tx.close();
+        }
+    }
 
-            try {
-				tx.rollback();
-			} catch (Exception e2) {
-				log.error("Rollback Exception:{}", e2);
-			}
-			return Status.BACKOFF;
-		} finally {
-			tx.close();
-		}
-	}
+    public void configure(Context context) {
+        defaultTopic = context.getString("defaultTopic");
+        if (defaultTopic == null) {
+            throw new ConfigurationException("defaultTopic configuration property not found, "
+                    + "it's must be specified.");
+        }
+        dynamicTopic = context.getString("dynamicTopic");
 
-	public void configure(Context context) {
-		defaultTopic = context.getString("defaultTopic");
-		if (defaultTopic == null) {
-			throw new ConfigurationException("defaultTopic configuration property not found, "
-					+ "it's must be specified.");
-		}
-		dynamicTopic = context.getString("dynamicTopic");
-		
-		//zkConnect = context.getString("zk.connect");
-		//if (zkConnect == null) {
-		//	throw new ConfigurationException("zookeeper.connect configuration property not founs, "
-		//			+ "it's must be specified.");
-		//}
-		//zkClient = new ZkClient(zkConnect);
-		
-		producer = KafkaSinkUtil.getProducer(context);
-		counter = new KafkaSinkCounter("SINK.Kafka-"+ getName());
-	}
+        //zkConnect = context.getString("zk.connect");
+        //if (zkConnect == null) {
+        //	throw new ConfigurationException("zookeeper.connect configuration property not founs, "
+        //			+ "it's must be specified.");
+        //}
+        //zkClient = new ZkClient(zkConnect);
 
-	@Override
-	public synchronized void start() {
-		super.start();
-		counter.start();
-	}
+        producer = KafkaSinkUtil.getProducer(context);
+        counter = new KafkaSinkCounter("SINK.Kafka-" + getName());
+    }
 
-	@Override
-	public synchronized void stop() {
-		producer.close();
-		counter.stop();
-		super.stop();
-	}
+    @Override
+    public synchronized void start() {
+        super.start();
+        counter.start();
+    }
+
+    @Override
+    public synchronized void stop() {
+        producer.close();
+        counter.stop();
+        super.stop();
+    }
 }
