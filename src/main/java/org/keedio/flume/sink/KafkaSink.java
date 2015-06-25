@@ -65,7 +65,7 @@ public class KafkaSink extends AbstractSink implements Configurable {
 			Event event = channel.take();
 			if (event == null) {
 				tx.commit();
-				return Status.READY;
+				return Status.BACKOFF;
 			}
 			try {
 				//destTopic = KafkaSinkUtil.getDestinationTopic(zkClient, dynamicTopic, defaultTopic, 
