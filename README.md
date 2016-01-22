@@ -1,6 +1,6 @@
 # flume-ng-demo-kafka-sink
 
-This project is used for [flume-ng](https://github.com/apache/flume) to communicate with [kafka 0.8.1.1](http://kafka.apache.org/08/quickstart.html).
+This project is used for [flume-ng](https://github.com/apache/flume) to communicate with [kafka 0.8.2.1](http://kafka.apache.org/08/quickstart.html).
 
 Aditionally to original plugin, this one implements a dynamic kafka topic selection method. It's used an ExtraData field in flume event body to build the kafka destintation topic.
 
