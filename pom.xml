@@ -10,12 +10,12 @@
     <properties>
         <scala.base.version>2.10</scala.base.version>
         <scala.version>${scala.base.version}.4</scala.version>
-        <kafka.version>0.8.1.1</kafka.version>
+        <kafka.version>0.8.2.1</kafka.version>
     </properties>
 
     <groupId>org.keedio.flume.sink</groupId>
     <artifactId>kafka-sink</artifactId>
-    <version>0.0.6</version>
+    <version>0.0.7</version>
 
     <dependencies>
         <dependency>
