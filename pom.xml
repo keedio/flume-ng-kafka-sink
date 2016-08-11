@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.apache.flume</groupId>
         <artifactId>flume-ng-sinks</artifactId>
-        <version>1.5.2</version>
+        <version>1.6.0</version>
     </parent>
 
     <properties>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <version>3.4.5</version>
+            <version>3.4.8</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -52,7 +52,7 @@
         <dependency>
             <groupId>org.keedio.flume.interceptor.enrichment</groupId>
             <artifactId>flume-enrichment-interceptor</artifactId>
-            <version>0.0.8</version>
+            <version>0.1.1</version>
         </dependency>
     </dependencies>
 
